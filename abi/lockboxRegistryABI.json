@@ -1,0 +1,414 @@
+[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "AuthorizationAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "AuthorizationRemoved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "sellerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "minBidStep",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "endBlock",
+				"type": "uint256"
+			}
+		],
+		"name": "LockboxCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			}
+		],
+		"name": "LockboxDeleted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "bidderId",
+				"type": "bytes16"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			}
+		],
+		"name": "LockboxSold",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes16",
+				"name": "currentBidderId",
+				"type": "bytes16"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "currentBidderAddress",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			}
+		],
+		"name": "LockboxUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "addAuthorization",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"internalType": "address payable",
+				"name": "sellerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "minBidStep",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "endBlock",
+				"type": "uint256"
+			}
+		],
+		"name": "createLockbox",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			}
+		],
+		"name": "deleteLockbox",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "bidderId",
+				"type": "bytes16"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			}
+		],
+		"name": "emitLockboxSold",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "isAuthorized",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "removeAuthorization",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			}
+		],
+		"name": "retrieveLockbox",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "sellerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "currentBidderAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "minBidStep",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "endBlock",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "currentBidderId",
+				"type": "bytes16"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signerAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "id",
+				"type": "bytes16"
+			},
+			{
+				"internalType": "address payable",
+				"name": "currentBidderAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes16",
+				"name": "currentBidderId",
+				"type": "bytes16"
+			}
+		],
+		"name": "updateLockbox",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
