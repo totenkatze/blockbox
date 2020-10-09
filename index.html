@@ -283,9 +283,9 @@
                             <hr class="mx-n3 mx-sm-n5 mb-4">
                             <div id="createLockboxForm">
                                 <div class="form-group">
-                                    <label for="lockboxId">Lockbox Domain</label>
+                                    <label for="lockboxId">Lockbox Signer Domain</label>
                                     <div class="input-group">
-                                        <input id="lockboxDomain" type="text" class="form-control" v-bind:value="lockbox.domain" readonly />
+                                        <input id="lockboxSignerDomain" type="text" class="form-control" v-bind:value="lockbox.signer.domain" readonly />
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -452,11 +452,7 @@
         }
 
         $(document).on("click", "#createLockBoxButton", function () {
-            let v = app.getUrlParameter("v", window.location.hash);
-            let r = app.getUrlParameter("r", window.location.hash);
-            let s = app.getUrlParameter("s", window.location.hash);
-
-            app.ethereum.lockboxAuction.createLockbox(v, r, s, vue.lockbox.id, vue.lockbox.price, vue.lockbox.minBidStep, vue.lockbox.blockDuration);
+            app.ethereum.lockboxAuction.createLockbox(vue.lockbox.id, vue.lockbox.price, vue.lockbox.minBidStep, vue.lockbox.blockDuration);
         });
 
         $(document).on("click", "#registerSignerBoxButton", function () {

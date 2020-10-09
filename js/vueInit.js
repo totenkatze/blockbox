@@ -11,11 +11,17 @@ var vue = new Vue({
             EUR: 0
         },
         lockbox: {
-            domain: null,
+            signer: {
+                domain: null
+            },
             id: null,
             price: 0,
             minBidStep: 0,
-            blockDuration: 0
+            blockDuration: 0,
+            currentBidderAddress: null,
+            currentBidderId: null,
+            endBlock: 0,
+            sellerAddress: null
         },
         signer: {
             domain: null,

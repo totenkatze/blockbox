@@ -46,12 +46,20 @@ const app = {
                     lockbox.price = parseFloat(web3.utils.fromWei(lockbox.price));
                     lockbox.minBidStep = parseFloat(web3.utils.fromWei(lockbox.minBidStep));
 
+                    for (let i = 0; i <= 5; i++) {
+                        delete lockbox[i.toString()];
+                    }
+
                     return lockbox;
                 }
             },
-            createLockbox: async function (v, r, s, id, price, minBidStep, blockDuration) {
+            createLockbox: async function (id, price, minBidStep, blockDuration) {
+                let v = app.utils.getUrlParameter("v", window.location.hash);
+                let r = app.utils.getUrlParameter("r", window.location.hash);
+                let s = app.utils.getUrlParameter("s", window.location.hash);
+
                 if (this.contractEnabled()) {
-                    this.contract.methods.createLockbox(v, r, s, id, web3.utils.toWei(price.toString()), web3.utils.toWei(minBidStep.toString()), blockDuration.toString()).send({ from: app.accounts[0] }, function (error, transactionHash) {
+                    this.contract.methods.createLockbox(v, r, s, id, web3.utils.toWei(price.toString()), web3.utils.toWei(minBidStep.toString()), blockDuration.toString()).send({ from: app.ethereum.accounts[0] }, function (error, transactionHash) {
                         vue.transactionHash = transactionHash;
                     });
                 }
@@ -68,12 +76,17 @@ const app = {
             },
             getSigner: async function getSigner(accountAddress) {
                 if (this.contract) {
-                    let result = await this.contract.methods.getSigner(accountAddress).call().catch((err) => { console.error(err); });
+                    let signer = await this.contract.methods.getSigner(accountAddress).call().catch((err) => { console.error(err); });
 
-                    result.domain = web3.utils.hexToUtf8(result.domain);
-                    result.percentage = parseInt(result.percentage);
+                    signer.address = accountAddress;
+                    signer.domain = web3.utils.hexToUtf8(signer.domain);
+                    signer.percentage = parseInt(signer.percentage);
 
-                    return result;
+                    for (let i = 0; i <= 3; i++) {
+                        delete signer[i.toString()];
+                    }
+
+                    return signer;
                 }
 
                 return null;
@@ -204,14 +217,17 @@ const app = {
                         let signer = await app.ethereum.signerRegistry.getSigner(keySigner.signerAddress);
 
                         if (signer && signer.enabled) {
-                            let domainSigners = await $.getJSON("https://" + signer.domain + "/lockbox/signers");
+                            let domainSigners = await $.getJSON("https://" + signer.domain + "/lockbox/signers").fail(function (jqxhr, textStatus, error) {
+                                var err = textStatus + ", " + error;
+                                console.log("Request Failed: " + err);
+                            });
 
                             if (domainSigners) {
                                 for (let i = 0; i < domainSigners.length; i++) {
                                     if (domainSigners[i] === keySigner.signerAddress) {
                                         vue.view = "lockbox.create";
                                         vue.lockbox.id = id;
-                                        vue.lockbox.domain = signer.domain;
+                                        vue.lockbox.signer = signer;
                                         break;
                                     }
                                 }
@@ -239,9 +255,10 @@ const app = {
                             if (domainSigners) {
                                 for (let i = 0; i < domainSigners.length; i++) {
                                     if (domainSigners[i] === keySigner.signerAddress) {
-                                        vue.view = "lockbox.create";
+                                        vue.view = "lockbox.bid";
+                                        vue.lockbox = await app.ethereum.lockboxAuction.getLockbox(signer.address, id);
                                         vue.lockbox.id = id;
-                                        vue.lockbox.domain = signer.domain;
+                                        vue.lockbox.signer = signer;
                                         break;
                                     }
                                 }
