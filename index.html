@@ -477,5 +477,219 @@
             app.ethereum.setAccounts([]);
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js" integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A==" crossorigin="anonymous"></script>
+    <script src="/js/algosdk.min.js"></script>
+    <script>
+        let algodClient = new algosdk.Algodv2({ 'X-API-key': 'BNnTW7O9a49w1EuYfNyz32OZ66R6PnC53edyiEnD' }, "https://testnet-algorand.api.purestake.io/ps2", "");
+
+        function base64ToArrayBuffer(base64) {
+            var binary_string = window.atob(base64);
+            var len = binary_string.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function signGroupTransactions() {
+            if (typeof AlgoSigner !== 'undefined') {
+                await AlgoSigner.connect();
+
+                let accounts = await AlgoSigner.accounts({ ledger: `TestNet` });
+
+                let txParams = await AlgoSigner.algod({
+                    ledger: 'TestNet',
+                    path: '/v2/transactions/params',
+                });
+
+                let txn1 = {
+                    from: accounts[0].address,
+                    to: accounts[1].address,
+                    fee: txParams['min-fee'],
+                    type: 'pay',
+                    amount: 1000000,
+                    firstRound: txParams['last-round'],
+                    lastRound: txParams['last-round'] + 1000,
+                    genesisID: txParams['genesis-id'],
+                    genesisHash: txParams['genesis-hash']
+                };
+
+                let txn2 = {
+                    from: accounts[1].address,
+                    to: accounts[1].address,
+                    fee: txParams['min-fee'],
+                    type: 'pay',
+                    amount: 2000000,
+                    firstRound: txParams['last-round'],
+                    lastRound: txParams['last-round'] + 1000,
+                    genesisID: txParams['genesis-id'],
+                    genesisHash: txParams['genesis-hash']
+                };
+
+                let txnGroup = algosdk.assignGroupID([txn1, txn2]);
+
+                let groupId = btoa(String.fromCharCode.apply(null, txnGroup[0].group));
+
+                txn1.group = groupId;
+                txn2.group = groupId;
+
+                let signedTxn1 = await AlgoSigner.sign(txn1);
+                let signedTxn2 = await AlgoSigner.sign(txn2);
+
+                var decoded1 = algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn1.blob));
+                var decoded2 = algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn2.blob));
+
+                decoded1.group = txnGroup[0].group;
+                decoded2.group = txnGroup[0].group;
+
+                let signed = [];
+                signed.push(decoded1);
+                signed.push(decoded2);
+
+                let tx = (await algodClient.sendRawTransaction(signed).do());
+                console.log("Transaction : " + tx.txId);
+            }
+        }
+
+        async function createTransactionGroup() {
+
+            let params = await algodClient.getTransactionParams().do();
+
+            let myAccountA = algosdk.mnemonicToSecretKey("kiss scale hollow raw region together boy teach wise devote eyebrow gloom crouch talent prize marriage circle uniform biology one market goose toy ability lounge");
+            let myAccountB = algosdk.mnemonicToSecretKey("rack unaware humor fringe deliver arrange pill soldier escape spread magnet crazy canoe olive tag badge globe dish dirt fit soul leave blush absent rough");
+            let myAccountC = algosdk.mnemonicToSecretKey("churn silk notable usual develop quiz soap undo cheap myself crowd delay dream call cat sad museum vicious shed burger wagon crane swear absorb lemon");
+
+            // Transaction A to C
+            let transaction1 = algosdk.makePaymentTxnWithSuggestedParams(myAccountA.addr, myAccountC.addr, 1000000, undefined, undefined, params);
+
+            //Create transaction B to A
+            let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(myAccountB.addr, myAccountA.addr, 2000000, undefined, undefined, params);
+
+            // Combine transactions
+            let txns = [transaction1, transaction2];
+
+            // Group both transactions
+            let txgroup = algosdk.assignGroupID(txns);
+
+            console.log(btoa(String.fromCharCode.apply(null, transaction1.group)));
+
+            let signedTx1 = transaction1.signTxn(myAccountA.sk);
+            let signedTx2 = transaction2.signTxn(myAccountB.sk);
+
+            let signed = [];
+            signed.push(signedTx1);
+            signed.push(signedTx2);
+
+            let tx = (await algodClient.sendRawTransaction(signed).do());
+            console.log("Transaction : " + tx.txId);
+
+            var foo = "bar";
+        }
+
+        async function createNonFungibleAsset(assetName) {
+            let note = undefined; // arbitrary data to be stored in the transaction; here, none is stored
+
+            // Asset creation specific parameters
+            // The following parameters are asset specific
+            // Throughout the example these will be re-used.
+            // We will also change the manager later in the example
+            let creator = algosdk.mnemonicToSecretKey(await getMnemonic());
+
+            // Whether user accounts will need to be unfrozen before transacting
+            let defaultFrozen = false;
+
+            // integer number of decimals for asset unit calculation
+            let decimals = 0;
+
+            // total number of this asset available for circulation
+            let totalIssuance = 1;
+
+            // Used to display asset units to user
+            let unitName = "NFT";
+
+            // Optional string pointing to a URL relating to the asset
+            let assetURL = "https://testtest.com/c/fffffffff";
+
+            // Optional hash commitment of some sort relating to the asset. 32 character length.
+            let assetMetadataHash = "c535d5d22a534c49af4f3b369899e358";
+
+            // The following parameters are the only ones
+            // that can be changed, and they have to be changed
+            // by the current manager
+            // Specified address can change reserve, freeze, clawback, and manager
+            let manager = creator.addr;
+
+            // Specified address is considered the asset reserve
+            // (it has no special privileges, this is only informational)
+            let reserve = undefined;
+
+            // Specified address can freeze or unfreeze user asset holdings
+            let freeze = undefined;
+
+            // Specified address can revoke user asset holdings and send
+            // them to other addresses
+            let clawback = creator.addr;
+
+            let params = await algodClient.getTransactionParams().do();
+
+            // signing and sending "txn" allows "addr" to create an asset
+            let txn = algosdk.makeAssetCreateTxnWithSuggestedParams(creator.addr, note,
+                totalIssuance, decimals, defaultFrozen, manager, reserve, freeze,
+                clawback, unitName, assetName, assetURL, assetMetadataHash, params);
+
+            let rawSignedTxn = txn.signTxn(creator.sk)
+
+            let tx = (await algodClient.sendRawTransaction(rawSignedTxn).do());
+
+            console.log("Transaction : " + tx.txId);
+
+            // wait for transaction to be confirmed
+            await waitForConfirmation(algodClient, tx.txId);
+
+            // Get the new asset's information from the creator account
+            let ptx = await algodClient.pendingTransactionInformation(tx.txId).do();
+
+            return ptx["asset-index"];
+        }
+
+        async function waitForConfirmation(algodclient, txId) {
+            let status = (await algodclient.status().do());
+            let lastRound = status["last-round"];
+            while (true) {
+                const pendingInfo = await algodclient.pendingTransactionInformation(txId).do();
+                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
+                    //Got the completed Transaction
+                    console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
+                    break;
+                }
+                lastRound++;
+                await algodclient.statusAfterBlock(lastRound).do();
+            }
+        };
+
+        if (localStorage.getItem("encryptedMnemonic") === null) {
+            let mnemonic = prompt("Enter your mnemonic", "");
+
+            if (mnemonic !== null && mnemonic !== "" && mnemonic.split(" ").length == 25) {
+                let password = prompt("Enter your password", "");
+
+                if (password !== null && password !== "") {
+                    localStorage.setItem("encryptedMnemonic", CryptoJS.AES.encrypt(mnemonic, password).toString());
+                }
+            }
+        }
+
+        async function getMnemonic() {
+            if (localStorage.getItem("encryptedMnemonic") !== null) {
+                let password = prompt("Enter your password", "");
+
+                if (password !== null && password !== "") {
+                    var decryptedBytes = CryptoJS.AES.decrypt(localStorage.getItem("encryptedMnemonic"), password);
+                    return decryptedBytes.toString(CryptoJS.enc.Utf8);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
