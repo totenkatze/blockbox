@@ -251,7 +251,7 @@
         <!-- Header End -->
         <!-- Content
         ============================================= -->
-        <div id="content" class="py-4">
+        <!--<div id="content" class="py-4">
             <div v-if="ethAddress === '0x0000000000000000000000000000000000000000'" class="container">
                 <div class="row">
                     <div class="col-md-9 col-lg-7 col-xl-5 mx-auto">
@@ -375,7 +375,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>-->
         <!-- Content end -->
         <!-- Footer
         ============================================= -->
@@ -496,6 +496,7 @@
             if (typeof AlgoSigner !== 'undefined') {
                 await AlgoSigner.connect();
 
+                // I have two accounts in algosigner.
                 let accounts = await AlgoSigner.accounts({ ledger: `TestNet` });
 
                 let txParams = await AlgoSigner.algod({
@@ -503,6 +504,7 @@
                     path: '/v2/transactions/params',
                 });
 
+                // First transaction from account 1 to account 2.
                 let txn1 = {
                     from: accounts[0].address,
                     to: accounts[1].address,
@@ -515,6 +517,7 @@
                     genesisHash: txParams['genesis-hash']
                 };
 
+                // Second transaction from account 2 to account 1.
                 let txn2 = {
                     from: accounts[1].address,
                     to: accounts[1].address,
@@ -527,28 +530,35 @@
                     genesisHash: txParams['genesis-hash']
                 };
 
+                // using the sdk to assign the group id.
                 let txnGroup = algosdk.assignGroupID([txn1, txn2]);
 
+                // Algosigner likes base64 encoded strings. So get the group id and set it on the two original transactions.
                 let groupId = btoa(String.fromCharCode.apply(null, txnGroup[0].group));
-
                 txn1.group = groupId;
                 txn2.group = groupId;
 
+                // Sign the transactions with AlgoSigner.
                 let signedTxn1 = await AlgoSigner.sign(txn1);
                 let signedTxn2 = await AlgoSigner.sign(txn2);
 
-                var decoded1 = algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn1.blob));
-                var decoded2 = algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn2.blob));
-
-                decoded1.group = txnGroup[0].group;
-                decoded2.group = txnGroup[0].group;
-
+                // Get the signed transactions as arrays so that we cans send them with the sdk.
+                // This is because I don't know how to send a transaction group through with AlgoSigner.
                 let signed = [];
-                signed.push(decoded1);
-                signed.push(decoded2);
+                signed.push(base64ToArrayBuffer(signedTxn1.blob));
+                signed.push(base64ToArrayBuffer(signedTxn2.blob));
 
-                let tx = (await algodClient.sendRawTransaction(signed).do());
-                console.log("Transaction : " + tx.txId);
+                try {
+                    // Alas, this won't work.
+                    let tx = (await algodClient.sendRawTransaction(signed).do());
+                    console.log("Transaction : " + tx.txId);
+                }
+                catch (error) {
+                    // Based on the error and decoded transactions, it looks like "group" was not in the signed transaction.
+                    console.log(error);
+                    console.log(algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn1.blob)));
+                    console.log(algosdk.decodeSignedTransaction(base64ToArrayBuffer(signedTxn2.blob)));
+                }
             }
         }
 
